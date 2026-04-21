@@ -1,0 +1,40 @@
+{
+  "name": "testkube-run-action",
+  "description": "GitHub Action to execute tests and test suites on the Testkube platform.",
+  "version": "1.0.7",
+  "license": "MIT",
+  "author": "step-security",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "scripts": {
+    "build": "rimraf dist && npx ncc build src/index.ts --license licenses.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/step-security/setup-testkube.git"
+  },
+  "bugs": {
+    "url": "https://github.com/step-security/setup-testkube/issues"
+  },
+  "homepage": "https://github.com/step-security/setup-testkube#readme",
+  "dependencies": {
+    "@actions/core": "^3.0.0",
+    "@actions/http-client": "^4.0.0",
+    "@actions/tool-cache": "^4.0.0",
+    "axios": "^1.15.0",
+    "got": "^12.6.0",
+    "semver": "7.7.3",
+    "which": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.3",
+    "@types/semver": "7.7.1",
+    "@types/which": "^3.0.0",
+    "@vercel/ncc": "^0.36.1",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.4"
+  }
+}
