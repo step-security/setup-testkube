@@ -24,7 +24,7 @@
     "@actions/core": "^3.0.0",
     "@actions/http-client": "^4.0.0",
     "@actions/tool-cache": "^4.0.0",
-    "axios": "^1.15.0",
+    "axios": "^1.15.1",
     "got": "^12.6.0",
     "semver": "7.7.3",
     "which": "^4.0.0"
