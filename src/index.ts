@@ -1,61 +1,12 @@
 import { spawnSync } from "node:child_process";
-import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
 import * as toolCache from "@actions/tool-cache";
-import { getInput, addPath, info, warning, error as coreError } from "@actions/core";
-import axios, { isAxiosError } from "axios";
+import { getInput, addPath } from "@actions/core";
 import got from "got";
 import which from "which";
 import semver from "semver";
-
-async function validateSubscription(): Promise<void> {
-  const eventPath = process.env.GITHUB_EVENT_PATH;
-  let repoPrivate: boolean | undefined;
-
-  if (eventPath && fs.existsSync(eventPath)) {
-    const eventData = JSON.parse(fs.readFileSync(eventPath, "utf8"));
-    repoPrivate = eventData?.repository?.private;
-  }
-
-  const upstream = "kubeshop/setup-testkube";
-  const action = process.env.GITHUB_ACTION_REPOSITORY;
-  const docsUrl =
-    "https://docs.stepsecurity.io/actions/stepsecurity-maintained-actions";
-
-  info("")
-  info("\u001b[1;36mStepSecurity Maintained Action\u001b[0m")
-  info(`Secure drop-in replacement for ${upstream}`)
-  if (repoPrivate === false)
-    info("\u001b[32m\u2713 Free for public repositories\u001b[0m")
-  info(`\u001b[36mLearn more:\u001b[0m ${docsUrl}`)
-  info("")
-
-  if (repoPrivate === false) return;
-
-  const serverUrl = process.env.GITHUB_SERVER_URL || "https://github.com";
-  const body: Record<string, string> = { action: action || "" };
-  if (serverUrl !== "https://github.com") body.ghes_server = serverUrl;
-  try {
-    await axios.post(
-      `https://agent.api.stepsecurity.io/v1/github/${process.env.GITHUB_REPOSITORY}/actions/maintained-actions-subscription`,
-      body,
-      { timeout: 3000 }
-    );
-  } catch (err) {
-    if (isAxiosError(err) && err.response?.status === 403) {
-      coreError(
-          "\u001b[1;31mThis action requires a StepSecurity subscription for private repositories.\u001b[0m",
-      )
-      coreError(
-          `\u001b[31mLearn how to enable a subscription: ${docsUrl}\u001b[0m`,
-      )
-      process.exit(1);
-    }
-    info("Timeout or API not reachable. Continuing to next step.");
-  }
-}
 
 // From 2.4.0 we dropped the `v` prefix. Before that we should respect that.
 const TAG_UPDATED_SINCE = "2.4.0";
@@ -85,8 +36,6 @@ const params: Params = {
   environment: getInput("environment"),
   token: getInput("token"),
 };
-
-await validateSubscription();
 
 const mode = params.organization || params.environment || params.token ? "cloud" : "kubectl";
 if (mode === "cloud") {
@@ -220,33 +169,6 @@ if (isTestkubeInstalled) {
   if (!isTestkubeInstalled) {
     process.stdout.write(`Downloading the artifact from "${artifactUrl}"...\n`);
     const artifactPath = await toolCache.downloadTool(artifactUrl);
-
-    // Verify integrity using GitHub's release asset digest if available
-    try {
-      const artifactFilename = `testkube_${encodedVerSysArch}.tar.gz`;
-      const releaseTag = isLegacyVersion ? `v${encodedVersion}` : encodedVersion;
-      const assetsResp: any = await got(
-        `https://api.github.com/repos/kubeshop/testkube/releases/tags/${releaseTag}`
-      ).json();
-      const asset = assetsResp.assets?.find((a: { name: string }) => a.name === artifactFilename);
-      if (asset?.digest) {
-        const expectedHash = asset.digest.replace("sha256:", "");
-        const fileBuffer = fs.readFileSync(artifactPath);
-        const actualHash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
-        if (actualHash !== expectedHash) {
-          throw new Error(`Integrity check failed for ${artifactFilename}: expected ${expectedHash}, got ${actualHash}`);
-        }
-        process.stdout.write(`Integrity verified (SHA-256: ${expectedHash})\n`);
-      } else {
-        warning("No digest available for this release asset, skipping integrity check");
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith("Integrity check failed")) {
-        throw error;
-      }
-      warning("Could not verify integrity, continuing without verification");
-    }
-
     if (fs.existsSync(`${binaryDirPath}/kubectl-testkube`)) {
       fs.rmSync(`${binaryDirPath}/kubectl-testkube`);
     }

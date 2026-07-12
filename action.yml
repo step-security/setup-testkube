@@ -1,5 +1,5 @@
 name: "Testkube Action"
-author: "step-security"
+author: "Kubeshop"
 description: "Interact with your Testkube cluster."
 runs:
   using: "node24"
