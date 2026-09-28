@@ -1,7 +1,7 @@
 {
   "name": "testkube-run-action",
   "description": "GitHub Action to execute tests and test suites on the Testkube platform.",
-  "version": "1.0.7",
+  "version": "1.0.13",
   "license": "MIT",
   "author": "step-security",
   "main": "dist/index.js",
