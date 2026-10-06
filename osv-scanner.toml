@@ -1,0 +1,3 @@
+[[IgnoredVulns]]
+id = "GHSA-ch52-4w7c-c8xp"
+reason = "Not exploitable: the vulnerable cache path is never used (got's cache option is not set) and no fix is available yet."
